@@ -52,7 +52,7 @@ public class UserController
         requestResult.setData(user);
         if(user == null)
         {
-            requestResult.setCode(30000);
+            requestResult.setCode(30000); 
             requestResult.setMessage("not found");
         }
         else 
