@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -14,60 +15,101 @@ import org.springframework.web.bind.annotation.ResponseBody;
 
 import com.xiujiang.pojo.RequestResult;
 import com.xiujiang.pojo.UserInfo;
+import com.xiujiang.service.UserService;
 
 @Controller
 @RequestMapping("/user")
 public class UserController
 {
-    public static Map<String,UserInfo> mapUserInfo = new HashMap<String,UserInfo>();
+    @Autowired
+    private UserService userService;
     
     @RequestMapping(method=RequestMethod.POST)
     public @ResponseBody RequestResult addUser(@RequestBody UserInfo userInfo)
     {
-        mapUserInfo.put(userInfo.getName(),userInfo);
+        boolean doesAddSuccess = userService.addUser(userInfo);
         RequestResult requestResult = new RequestResult();
-        requestResult.setCode(10000);
-        requestResult.setMessage("success");
+        
+        if(doesAddSuccess)
+        {
+            requestResult.setCode(10000);
+            requestResult.setMessage("success");    
+        }
+        else
+        {
+            requestResult.setCode(20000);
+            requestResult.setMessage("failure");
+        }
         return requestResult;
     }
     
     
     @RequestMapping(value="/{name}",method=RequestMethod.GET)
-    public @ResponseBody UserInfo getUser(@PathVariable("name") String userName)
+    public @ResponseBody RequestResult getUser(@PathVariable("name") String userName)
     {
-        return mapUserInfo.get(userName);
+        RequestResult requestResult = new RequestResult();
+        UserInfo user  = userService.getUserByName(userName);
+        requestResult.setData(user);
+        if(user == null)
+        {
+            requestResult.setCode(30000);
+            requestResult.setMessage("not found");
+        }
+        else 
+        {
+            requestResult.setCode(10000);
+            requestResult.setMessage("success");    
+        }
+        return requestResult;
     }
     
     
     @RequestMapping(method=RequestMethod.PUT)
     public @ResponseBody RequestResult editUser(@RequestBody UserInfo userInfo)
     {
-        mapUserInfo.put(userInfo.getName(),userInfo);
+        UserInfo user  = userService.editUser(userInfo);
         RequestResult requestResult = new RequestResult();
-        requestResult.setCode(10000);
-        requestResult.setMessage("success");
+        requestResult.setData(user);
+        if(user == null)
+        {
+            requestResult.setCode(30000);
+            requestResult.setMessage("not found");
+        }
+        else 
+        {
+            requestResult.setCode(10000);
+            requestResult.setMessage("success");    
+        }
         return requestResult;
     }
     
     @RequestMapping(value="/{name}",method=RequestMethod.DELETE)
-    public @ResponseBody RequestResult editUser(@PathVariable("name") String userName)
+    public @ResponseBody RequestResult delUser(@PathVariable("name") String userName)
     {
-        mapUserInfo.remove(userName);
+        boolean doesDelSuccess = userService.delUser(userName);
         RequestResult requestResult = new RequestResult();
-        requestResult.setCode(10000);
-        requestResult.setMessage("success");
+        
+        if(doesDelSuccess)
+        {
+            requestResult.setCode(10000);
+            requestResult.setMessage("success");    
+        }
+        else
+        {
+            requestResult.setCode(20000);
+            requestResult.setMessage("failure");
+        }
         return requestResult;
     }
     
     
     @RequestMapping(method=RequestMethod.GET)
-    public @ResponseBody List<UserInfo> getUserList()
+    public @ResponseBody RequestResult getUserList()
     {
-        List<UserInfo> listUserInfo = new ArrayList<UserInfo>();
-        for(String name:mapUserInfo.keySet())
-        {
-            listUserInfo.add(mapUserInfo.get(name));
-        }
-        return listUserInfo;
+        RequestResult requestResult = new RequestResult();
+        requestResult.setCode(10000);
+        requestResult.setMessage("success"); 
+        requestResult.setData(userService.getAllUsers());
+        return requestResult;
     }
 }
